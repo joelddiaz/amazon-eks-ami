@@ -282,8 +282,11 @@ for binary in ${BINARIES[*]}; do
     sudo wget $S3_URL_BASE/$binary.sha256
   fi
   sudo sha256sum -c $binary.sha256
-  sudo chmod +x $binary
+  sudo chmod 755 $binary
   sudo mv $binary /usr/bin/
+  if [[ -n "${SELINUX_BINARIES_CONTEXT}" ]]; then
+    sudo chcon ${SELINUX_BINARIES_CONTEXT} /usr/bin/$binary
+  fi
 done
 
 # Verify that the aws-iam-authenticator is at last v0.5.9 or greater. Otherwise, nodes will be

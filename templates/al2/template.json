@@ -34,6 +34,7 @@
     "remote_folder": null,
     "runc_version": null,
     "security_group_id": null,
+    "selinux_binaries_context": null,
     "source_ami_filter_name": null,
     "source_ami_id": null,
     "source_ami_owners": null,
@@ -204,6 +205,7 @@
         "PAUSE_CONTAINER_VERSION={{user `pause_container_version`}}",
         "PULL_CNI_FROM_GITHUB={{user `pull_cni_from_github`}}",
         "RUNC_VERSION={{user `runc_version`}}",
+        "SELINUX_BINARIES_CONTEXT={{ user `selinux_binaries_context`}}",
         "SSM_AGENT_VERSION={{user `ssm_agent_version`}}",
         "WORKING_DIR={{user `working_dir`}}"
       ]
