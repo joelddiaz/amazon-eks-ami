@@ -23,7 +23,7 @@ if [ "$?" != 0 ]; then
 fi
 echo $(jq ".binaries.kubelet = \"$KUBELET_VERSION\"" $OUTPUT_FILE) > $OUTPUT_FILE
 
-CLI_VERSION=$(aws --version | awk '{print $1}' | cut -d '/' -f 2)
+CLI_VERSION=$(aws --version | awk '{print $1}' | cut -d '/' -f 2 || echo "unknown")
 if [ "$?" != 0 ]; then
   echo "unable to get aws cli version"
   exit 1
