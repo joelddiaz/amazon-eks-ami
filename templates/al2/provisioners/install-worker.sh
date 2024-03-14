@@ -160,12 +160,10 @@ else
   sudo mv $WORKING_DIR/containerd-config.toml /etc/eks/containerd/containerd-config.toml
 fi
 
-sudo mv $WORKING_DIR/kubelet-containerd.service /etc/eks/containerd/kubelet-containerd.service
-sudo mv $WORKING_DIR/sandbox-image.service /etc/eks/containerd/sandbox-image.service
-sudo mv $WORKING_DIR/pull-sandbox-image.sh /etc/eks/containerd/pull-sandbox-image.sh
-sudo mv $WORKING_DIR/pull-image.sh /etc/eks/containerd/pull-image.sh
-sudo chmod 755 /etc/eks/containerd/pull-sandbox-image.sh
-sudo chmod 755 /etc/eks/containerd/pull-image.sh
+sudo install -m 644 $WORKING_DIR/kubelet-containerd.service /etc/eks/containerd/kubelet-containerd.service
+sudo install -m 644 $WORKING_DIR/sandbox-image.service /etc/eks/containerd/sandbox-image.service
+sudo install -m 755 $WORKING_DIR/pull-sandbox-image.sh /etc/eks/containerd/pull-sandbox-image.sh
+sudo install -m 755 $WORKING_DIR/pull-image.sh /etc/eks/containerd/pull-image.sh
 sudo mkdir -p /etc/systemd/system/containerd.service.d
 CONFIGURE_CONTAINERD_SLICE=$(vercmp "$KUBERNETES_VERSION" gteq "1.24.0" || true)
 if [ "$CONFIGURE_CONTAINERD_SLICE" == "true" ]; then
@@ -227,8 +225,7 @@ if [[ "$INSTALL_DOCKER" == "true" ]]; then
   sudo sed -i '/OPTIONS/d' /etc/sysconfig/docker
 
   sudo mkdir -p /etc/docker
-  sudo mv $WORKING_DIR/docker-daemon.json /etc/docker/daemon.json
-  sudo chown root:root /etc/docker/daemon.json
+  sudo install -m 644 $WORKING_DIR/docker-daemon.json /etc/docker/daemon.json
 
   # Enable docker daemon to start on boot.
   sudo systemctl daemon-reload
@@ -240,10 +237,8 @@ fi
 
 # kubelet uses journald which has built-in rotation and capped size.
 # See man 5 journald.conf
-sudo mv $WORKING_DIR/logrotate-kube-proxy /etc/logrotate.d/kube-proxy
-sudo mv $WORKING_DIR/logrotate.conf /etc/logrotate.conf
-sudo chown root:root /etc/logrotate.d/kube-proxy
-sudo chown root:root /etc/logrotate.conf
+sudo install -m 644 $WORKING_DIR/logrotate-kube-proxy /etc/logrotate.d/kube-proxy
+sudo install -m 644 $WORKING_DIR/logrotate.conf /etc/logrotate.conf
 sudo mkdir -p /var/log/journal
 
 ################################################################################
@@ -282,8 +277,8 @@ for binary in ${BINARIES[*]}; do
     sudo wget $S3_URL_BASE/$binary.sha256
   fi
   sudo sha256sum -c $binary.sha256
-  sudo chmod 755 $binary
-  sudo mv $binary /usr/bin/
+  sudo install -m 755 $binary /usr/bin/
+  sudo rm $binary
 done
 
 # Verify that the aws-iam-authenticator is at last v0.5.9 or greater. Otherwise, nodes will be
@@ -318,14 +313,13 @@ else
   sudo sha256sum -c "${CNI_PLUGIN_FILENAME}.tgz.sha256"
 fi
 sudo tar -xvf "${CNI_PLUGIN_FILENAME}.tgz" -C /opt/cni/bin
-rm "${CNI_PLUGIN_FILENAME}.tgz"
+sudo rm "${CNI_PLUGIN_FILENAME}.tgz"
 
 sudo rm ./*.sha256
 
 sudo mkdir -p /etc/kubernetes/kubelet
 sudo mkdir -p /etc/systemd/system/kubelet.service.d
-sudo mv $WORKING_DIR/kubelet-kubeconfig /var/lib/kubelet/kubeconfig
-sudo chown root:root /var/lib/kubelet/kubeconfig
+sudo install -m 644 $WORKING_DIR/kubelet-kubeconfig /var/lib/kubelet/kubeconfig
 
 # Inject CSIServiceAccountToken feature gate to kubelet config if kubernetes version starts with 1.20.
 # This is only injected for 1.20 since CSIServiceAccountToken will be moved to beta starting 1.21.
@@ -341,10 +335,8 @@ if vercmp $KUBERNETES_VERSION lt "1.28"; then
   echo $KUBELET_CONFIG_WITH_KUBELET_CREDENTIAL_PROVIDER_FEATURE_GATE_ENABLED > $WORKING_DIR/kubelet-config.json
 fi
 
-sudo mv $WORKING_DIR/kubelet.service /etc/systemd/system/kubelet.service
-sudo chown root:root /etc/systemd/system/kubelet.service
-sudo mv $WORKING_DIR/kubelet-config.json /etc/kubernetes/kubelet/kubelet-config.json
-sudo chown root:root /etc/kubernetes/kubelet/kubelet-config.json
+sudo install -m 644 $WORKING_DIR/kubelet.service /etc/systemd/system/kubelet.service
+sudo install -m 644 $WORKING_DIR/kubelet-config.json /etc/kubernetes/kubelet/kubelet-config.json
 
 sudo systemctl daemon-reload
 # Disable the kubelet until the proper dropins have been configured
@@ -355,13 +347,10 @@ sudo systemctl disable kubelet
 ################################################################################
 
 sudo mkdir -p /etc/eks
-sudo mv $WORKING_DIR/get-ecr-uri.sh /etc/eks/get-ecr-uri.sh
-sudo chmod 755 /etc/eks/get-ecr-uri.sh
-sudo mv $WORKING_DIR/eni-max-pods.txt /etc/eks/eni-max-pods.txt
-sudo mv $WORKING_DIR/bootstrap.sh /etc/eks/bootstrap.sh
-sudo chmod 755 /etc/eks/bootstrap.sh
-sudo mv $WORKING_DIR/max-pods-calculator.sh /etc/eks/max-pods-calculator.sh
-sudo chmod 755 /etc/eks/max-pods-calculator.sh
+sudo install -m 755 $WORKING_DIR/get-ecr-uri.sh /etc/eks/get-ecr-uri.sh
+sudo install -m 644 $WORKING_DIR/eni-max-pods.txt /etc/eks/eni-max-pods.txt
+sudo install -m 755 $WORKING_DIR/bootstrap.sh /etc/eks/bootstrap.sh
+sudo install -m 755 $WORKING_DIR/max-pods-calculator.sh /etc/eks/max-pods-calculator.sh
 
 ################################################################################
 ### ECR CREDENTIAL PROVIDER ####################################################
@@ -374,10 +363,10 @@ else
   echo "AWS cli missing - using wget to fetch ${ECR_CREDENTIAL_PROVIDER_BINARY} from s3. Note: This won't work for private bucket."
   sudo wget "$S3_URL_BASE/$ECR_CREDENTIAL_PROVIDER_BINARY"
 fi
-sudo chmod 755 $ECR_CREDENTIAL_PROVIDER_BINARY
 sudo mkdir -p /etc/eks/image-credential-provider
-sudo mv $ECR_CREDENTIAL_PROVIDER_BINARY /etc/eks/image-credential-provider/
-sudo mv $WORKING_DIR/ecr-credential-provider-config.json /etc/eks/image-credential-provider/config.json
+sudo install -m 755 $ECR_CREDENTIAL_PROVIDER_BINARY /etc/eks/image-credential-provider/
+sudo rm $ECR_CREDENTIAL_PROVIDER_BINARY
+sudo install -m 644 $WORKING_DIR/ecr-credential-provider-config.json /etc/eks/image-credential-provider/config.json
 
 ################################################################################
 ### Cache Images ###############################################################
@@ -512,8 +501,7 @@ BUILD_TIME="$(date)"
 BUILD_KERNEL="$(uname -r)"
 ARCH="$(uname -m)"
 EOF
-sudo mv "${WORKING_DIR}/release" /etc/eks/release
-sudo chown -R root:root /etc/eks
+sudo install -m 644 $WORKING_DIR/release /etc/eks/release
 
 ################################################################################
 ### Stuff required by "protectKernelDefaults=true" #############################
