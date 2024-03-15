@@ -74,7 +74,13 @@
           "volume_type": "{{user `volume_type`}}",
           "volume_size": "{{user `launch_block_device_mappings_volume_size`}}",
           "delete_on_termination": true
-        }
+        },
+	{
+	  "device_name": "/dev/sdf",
+	  "volume_type": "{{user `volume_type`}}",
+	  "volume_size": "300",
+	  "delete_on_termination": true
+	}
       ],
       "ami_block_device_mappings": [
         {
@@ -82,7 +88,13 @@
           "volume_type": "{{user `volume_type`}}",
           "volume_size": 20,
           "delete_on_termination": true
-        }
+        },
+	{
+	  "device_name": "/dev/sdf",
+	  "volume_type": "{{user `volume_type`}}",
+	  "volume_size": "300",
+	  "delete_on_termination": true
+	}
       ],
       "aws_polling": {
         "delay_seconds": 30,
@@ -209,6 +221,11 @@
         "SSM_AGENT_VERSION={{user `ssm_agent_version`}}",
         "WORKING_DIR={{user `working_dir`}}"
       ]
+    },
+    {
+      "type": "shell",
+      "remote_folder": "{{ user `remote_folder`}}",
+      "script": "{{template_dir}}/provisioners/celonis-extras.sh"
     },
     {
       "type": "shell",
